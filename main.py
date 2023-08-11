@@ -14,8 +14,8 @@ _GREEN = (0, 255, 0)
 last_mouse_y = 100
 l_target = 100
 r_target = 100
-
 targets = [last_mouse_y, l_target, r_target]
+
 
 
 def check_for_key(key):
@@ -61,20 +61,22 @@ def updateScreen():
 
     Car.draw_buggy(blank)
     blank = cv.putText(blank, f"LRPM = {lrpm}, RRPM = {rrpm}", (25, 25), cv.FONT_HERSHEY_TRIPLEX, 0.5, (255, 255, 255))
+    blank = cv.putText(blank, "Press R to reset", (25, 650), cv.FONT_HERSHEY_TRIPLEX, 0.5, (255, 255, 255))
     print("ATTEMPT COMPLETE\n\n\n")
 
 
 def draw_mouse_line(event, x, y, flags, params):
-    global blank, last_mouse_y, l_target, r_target, targets
+    global blank, last_mouse_y, l_target, r_target, targets, mousemoved
 
     if event == cv.EVENT_MOUSEMOVE:
         # print("lkajsdlkas")
         # print(y)
         last_mouse_y = y
-        l_target = int(last_mouse_y - 20) #Car.dist//2)
-        r_target = int(last_mouse_y + 20) #Car.dist//2)
+        l_target = int(last_mouse_y - Car.dist//2)
+        r_target = int(last_mouse_y + Car.dist//2)
         targets = [last_mouse_y, l_target, r_target]
         print(targets)
+        mousemoved = True
 
 cv.namedWindow(winname="named_window")
 cv.setMouseCallback("named_window", draw_mouse_line)
@@ -84,14 +86,17 @@ rrpm = 0
 
 Car = Buggy(blank)
 PID = PID(lrpm, rrpm, targets, Car)
-
+mousemoved = False
 
 while True:
     cv.imshow("named_window", blank)
+    if not mousemoved:
+        cv.waitKey(1000)
+        Car.reset(blank)
 
     Car.move_straight(float(lrpm), float(rrpm))
-    lrpm, rrpm = PID.update(lrpm, rrpm, targets, Car)
     updateScreen()
+    lrpm, rrpm = PID.update(lrpm, rrpm, targets, Car)
     if check_for_key(cv.waitKey(1) & 0xff) == -1:
         break
 
