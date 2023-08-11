@@ -7,7 +7,7 @@ _RPM_SENSE = 10
 
 class Buggy:
 
-    def __init__(self, window, ix=100, iy=600):
+    def __init__(self, window, ix=100, iy=350):
 
         self.wl = [ix, iy - 20]  # left wheel
         self.wr = [ix, iy + 20]  # right wheel
@@ -16,9 +16,9 @@ class Buggy:
         self.t1, self.t2 = self.wr  # debug vars for right vector
         self.dist = math.dist(self.wl, self.wr)
 
-        self.roundedLeft = (round(self.wl[0]), round(self.wl[1]))
-        self.roundedRight = (round(self.wr[0]), round(self.wr[1]))
-        self.roundedMiddle = (round(self.wm[0]), round(self.wm[1]))
+        self.roundedLeft = [round(self.wl[0]), round(self.wl[1])]
+        self.roundedRight = [round(self.wr[0]), round(self.wr[1])]
+        self.roundedMiddle = [round(self.wm[0]), round(self.wm[1])]
         self.roundedMidpoint = None
         self.roundedT1 = round(self.t1)
         self.roundedT2 = round(self.t2)
@@ -71,20 +71,46 @@ class Buggy:
 
         return [self.midpoint[0] + deltx, self.midpoint[1] - delty]
 
+    def correct_size(self, window):
+        if 41 > self.roundedDist > 39:
+            print("passed")
+            return
+        else:
+            ltmx = self.wl[0] - self.midpoint[0]
+            ltmy = self.wl[1] - self.midpoint[1]
+            rtmx = self.wr[0] - self.midpoint[0]
+            rtmy = self.wr[1] - self.midpoint[1]
+            c = round(math.dist(self.wl, self.midpoint))
+            scale_factor = 20 / c
+
+            ltmx = ltmx * scale_factor
+            ltmy = ltmy * scale_factor
+            rtmx = rtmx * scale_factor
+            rtmy = rtmy * scale_factor
+
+            self.wl[0] = self.midpoint[0] + ltmx
+            self.wl[1] = self.midpoint[1] + ltmy
+            self.wr[0] = self.midpoint[0] + rtmx
+            self.wr[1] = self.midpoint[1] + rtmy
     def draw_buggy(self, window, update=False):
 
         if self.dist < 40:
             pass
             # print(f"Alert! Dist = {math.dist(self.wl, self.wr)}")
-
+        print([self.wl, self.wr, self.wm])
         self.wm = self.find_middle_wheel(update=update)
+        self.correct_size(window)
+        self.wm = self.find_middle_wheel(update=update)
+        print([self.wl, self.wr, self.wm])
 
-        self.roundedLeft = (round(self.wl[0]), round(self.wl[1]))
-        self.roundedRight = (round(self.wr[0]), round(self.wr[1]))
-        self.roundedMiddle = (round(self.wm[0]), round(self.wm[1]))
-        self.roundedMidpoint = (round(self.midpoint[0]), round(self.midpoint[1]))
+        self.roundedLeft = [round(self.wl[0]), round(self.wl[1])]
+        self.roundedRight = [round(self.wr[0]), round(self.wr[1])]
+        self.roundedMiddle = [round(self.wm[0]), round(self.wm[1])]
+        self.roundedMidpoint = [round(self.midpoint[0]), round(self.midpoint[1])]
         self.roundedT1 = round(self.t1)
         self.roundedT2 = round(self.t2)
+
+        print([self.roundedLeft, self.roundedRight, self.roundedMiddle])
 
         triangle_contours = np.array([self.roundedLeft, self.roundedRight, self.roundedMiddle])
         cv.drawContours(window, [triangle_contours], 0, (0, 0, 255), -1)
@@ -222,8 +248,11 @@ class Buggy:
         # print([self.wl, self.wr, self.wm])
         self.wl[0] += left_deltx
         self.wl[1] -= left_delty
+        # self.correct_size()
+        print([self.wr, self.wl, self.wm])
 
-    def reset(self, window, ix=100, iy=600):
+
+    def reset(self, window, ix=100, iy=350):
 
         self.wl = [ix, iy - 20]  # left wheel
         self.wr = [ix, iy + 20]  # right wheel
